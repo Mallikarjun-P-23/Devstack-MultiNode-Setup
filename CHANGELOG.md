@@ -34,11 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `configs/netplan-example.yaml` - Network configuration template
 - `configs/hosts-example` - Host file configuration template
 
-### Scripts
-- `scripts/setup-controller.sh` - Automated controller node setup
-- `scripts/setup-compute.sh` - Automated compute node setup
-- `scripts/cleanup.sh` - Safe DevStack cleanup and removal
-- `scripts/health-check.sh` - Installation health monitoring
 
 ### Features
 - Support for Ubuntu 22.04 LTS (Jammy)
