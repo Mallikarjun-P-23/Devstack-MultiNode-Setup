@@ -57,9 +57,12 @@ This repository serves as a **reference documentation** for setting up OpenStack
 - [Compute Node Setup](compute_node.md) - Complete compute node configuration
 
 ### Configuration Files
-- [Controller local.conf](configs/controller-local.conf) - Controller node configuration
-- [Compute local.conf](configs/compute-local.conf) - Compute node configuration
+- [Controller local.conf](configs/controller-local.conf) - Controller node configuration template
+- [Compute local.conf](configs/compute-local.conf) - Compute node configuration template
 - [Network Configuration](configs/netplan-example.yaml) - Network setup example
+- [Configuration Guide](CONFIGURATION.md) - How to customize templates for your environment
+
+**⚠️ Important**: Configuration files contain placeholders like `<controller_ip>`, `<compute_ip>`, etc. See [CONFIGURATION.md](CONFIGURATION.md) for setup instructions.
 
 ## 🚦 Quick Start
 

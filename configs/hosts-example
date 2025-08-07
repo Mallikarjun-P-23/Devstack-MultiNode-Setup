@@ -2,12 +2,12 @@
 # Add these entries to /etc/hosts on both controller and compute nodes
 
 # DevStack Multinode Setup
-192.168.0.5   controller
-192.168.0.6   compute1
+<controller_ip>   controller
+<compute_ip>      compute1
 
 # Optional: Add additional compute nodes
-# 192.168.0.7   compute2
-# 192.168.0.8   compute3
+# <compute2_ip>   compute2
+# <compute3_ip>   compute3
 
 # To apply: 
 # sudo cp hosts-example /etc/hosts
