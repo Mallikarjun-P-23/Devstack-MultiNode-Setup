@@ -6,6 +6,10 @@ logs/
 data/
 .stack_env
 
+# Scripts (only documentation, no automation scripts)
+scripts/
+*.sh
+
 # Python
 __pycache__/
 *.py[cod]
@@ -98,3 +102,7 @@ _build/
 *.temp
 temp/
 tmp/
+
+# Shell scripts (exclude from repository)
+*.sh
+scripts/

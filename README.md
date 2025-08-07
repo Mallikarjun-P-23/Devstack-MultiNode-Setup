@@ -66,38 +66,37 @@ This repository serves as a **reference documentation** for setting up OpenStack
 
 ## 🚦 Quick Start
 
-### 1. Controller Node
+### 1. Setup Configuration
+- Copy configuration templates from `configs/` directory
+- Replace placeholders with your actual values
+- See [CONFIGURATION.md](CONFIGURATION.md) for detailed instructions
+
+### 2. Controller Node
 ```bash
 # Follow the controller setup guide
 # See: controller_nod.md
 ```
 
-### 2. Compute Node
+### 3. Compute Node
 ```bash
 # Follow the compute setup guide  
 # See: compute_node.md
 ```
 
-### 3. Access Dashboard
-- URL: http://192.168.0.5/dashboard
+### 4. Access Dashboard
+- URL: http://<controller_ip>/dashboard
 - Username: `admin`
 - Password: `labstack`
 
-## 🛠️ Scripts
+##  Configuration
 
-- [setup-controller.sh](scripts/setup-controller.sh) - Automated controller setup
-- [setup-compute.sh](scripts/setup-compute.sh) - Automated compute setup
-- [cleanup.sh](scripts/cleanup.sh) - Clean up DevStack installation
-
-## 🔧 Configuration
-
-Default network configuration:
+Default network configuration (examples):
 - Controller IP: `192.168.0.5`
 - Compute IP: `192.168.0.6`
 - Network: `192.168.0.0/24`
 - Gateway: `192.168.0.1`
 
-**Note**: Modify IP addresses in configuration files to match your environment.
+**Note**: Replace placeholders in configuration files with your actual network settings. See [CONFIGURATION.md](CONFIGURATION.md) for detailed instructions.
 
 ## 🐛 Troubleshooting
 

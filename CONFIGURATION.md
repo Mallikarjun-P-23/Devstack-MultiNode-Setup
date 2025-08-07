@@ -93,20 +93,31 @@ vim /tmp/hosts-devstack
 sudo cat /tmp/hosts-devstack >> /etc/hosts
 ```
 
-## 🚀 Quick Setup with Scripts
+## 🚀 Manual Setup Process
 
-The setup scripts can automatically replace placeholders if you provide IP addresses:
+Follow the step-by-step guides for manual setup:
 
 ### Controller Node
 ```bash
-# Run with your actual IPs
-./scripts/setup-controller.sh 192.168.0.5 192.168.0.6
+# Follow the detailed controller setup guide
+# See: controller_nod.md
+
+# Make sure to replace placeholders in local.conf before running:
+# <controller_ip> -> your controller IP
+# <compute_ip> -> your compute IP
+# <interface_name> -> your interface name
+# <network_range> -> your network range
 ```
 
 ### Compute Node
 ```bash
-# Run with your actual IPs
-./scripts/setup-compute.sh 192.168.0.5 192.168.0.6
+# Follow the detailed compute setup guide
+# See: compute_node.md
+
+# Make sure to replace placeholders in local.conf before running:
+# <controller_ip> -> your controller IP
+# <compute_ip> -> your compute IP
+# <interface_name> -> your interface name
 ```
 
 ## 📝 Configuration Examples
