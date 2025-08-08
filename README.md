@@ -69,7 +69,7 @@ This repository serves as a **reference documentation** for setting up OpenStack
 ### 1. Setup Configuration
 - Copy configuration templates from `configs/` directory
 - Replace placeholders with your actual values
-- See [CONFIGURATION.md](CONFIGURATION.md) for detailed instructions
+
 
 ### 2. Controller Node
 ```bash
@@ -144,9 +144,6 @@ openstack network list
 openstack server list
 ```
 
-## 🤝 Contributing
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## 📄 License
 
