@@ -138,6 +138,21 @@ cd ~/devstack
 - View Nova services:
     ```bash
     openstack compute service list
+    # 1. Stop DevStack services if running
+cd /opt/stack/devstack
+./unstack.sh
+
+# 2. Clean DevStack state
+./clean.sh
+
+# 3. Remove old nova state (do this carefully!)
+sudo rm -rf /etc/nova /var/lib/nova /var/log/nova
+
+# 4. (Optional, but recommended) Remove DevStack logs as well
+sudo rm -rf /opt/stack/logs/*
+
+# 5. Start the stack process again
+./stack.sh
     ```
 - View logs:
     ```bash
