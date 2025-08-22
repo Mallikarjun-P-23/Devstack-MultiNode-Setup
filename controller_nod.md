@@ -109,6 +109,18 @@ sudo rm -rf /etc/nova /var/lib/nova /var/log/nova
 ```bash
 cd ~/devstack
 ./stack.sh
+
+sudo reboot
+sudo pkill -f nova
+sudo rm -rf /etc/nova /var/lib/nova /var/log/nova /opt/stack/logs/*
+mysql -u root -p
+USE nova;
+DELETE FROM compute_nodes WHERE hypervisor_hostname = 'OLD_HOSTNAME';
+DELETE FROM services WHERE host = 'OLD_HOSTNAME';
+cd /opt/stack/devstack
+./stack.sh
+
+
 ```
 
 ---
