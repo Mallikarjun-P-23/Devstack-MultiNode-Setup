@@ -96,6 +96,10 @@ Edit `/etc/hosts` on both controller and compute nodes:
 ```
 192.168.0.5   controller
 192.168.0.6   compute1
+sudo systemctl stop devstack@n-cpu.service || true
+sudo pkill -f nova
+sudo rm -rf /etc/nova /var/lib/nova /var/log/nova
+
 ```
 
 ---
