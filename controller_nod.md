@@ -126,6 +126,13 @@ openstack security group rule create --proto tcp --dst-port 80 default
 openstack security group rule create --proto tcp --dst-port 443 default
 openstack security group rule create --egress --proto any default
 
+openstack security group create my-secgroup --description "For Cirros"
+openstack security group rule create --proto icmp my-secgroup
+openstack security group rule create --proto tcp --dst-port 22 my-secgroup
+openstack security group rule create --proto tcp --dst-port 80 my-secgroup
+openstack security group rule create --egress --proto any my-secgroup
+openstack server add security group <instance-id> my-secgroup
+
 ```
 
 ---
