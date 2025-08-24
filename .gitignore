@@ -104,5 +104,5 @@ temp/
 tmp/
 
 # Shell scripts (exclude from repository)
-*.sh
+
 
