@@ -1,283 +1,165 @@
-# DevStack Multinode Setup - Known Issues and Solutions
+# DevStack Troubleshooting Guide
 
-This document contains common issues encountered during DevStack multinode setup and their solutions.
+If you encounter any errors or issues during setup or operation, use the following troubleshooting steps and commands.
 
-## 🚨 Installation Issues
+---
 
-### 1. Stack.sh Fails During Installation
+## 1. Check DevStack Logs
 
-**Problem**: Stack.sh script fails with various errors during installation.
-
-**Common Causes & Solutions**:
-
-#### Memory Issues
 ```bash
-# Error: "Cannot allocate memory"
-# Solution: Ensure minimum 4GB RAM, 8GB recommended
-free -h
-# If insufficient, allocate more memory to your VM
-```
-
-#### Network Connectivity
-```bash
-# Error: Cannot reach controller from compute node
-# Solution: Check network configuration
-ping controller
-ping compute1
-
-# Verify /etc/hosts entries
-cat /etc/hosts | grep -E "(controller|compute)"
-```
-
-#### Service Start Failures
-```bash
-# Check specific service logs
-tail -f /opt/stack/logs/[service-name].log
-
-# Common services that fail:
-# - nova-compute
-# - neutron-agent
-# - mysql
-```
-
-### 2. Neutron Agent Issues
-
-**Problem**: Neutron agents not showing up or in error state.
-
-**Solution**:
-```bash
-# Check neutron agent status
-openstack network agent list
-
-# Restart neutron services
-sudo systemctl restart devstack@q-agt
-sudo systemctl restart devstack@q-l3
-sudo systemctl restart devstack@q-dhcp
-```
-
-### 3. Nova Compute Service Not Registered
-
-**Problem**: Compute node not showing in hypervisor list.
-
-**Solution**:
-```bash
-# On compute node, check nova-compute service
-sudo systemctl status devstack@n-cpu
-
-# Check nova-compute logs
-tail -f /opt/stack/logs/n-cpu.log
-
-# Verify RabbitMQ connectivity from compute to controller
-telnet controller 5672
-```
-
-## 🔧 Configuration Issues
-
-### 4. Wrong Interface Configuration
-
-**Problem**: Services binding to wrong network interface.
-
-**Solution**:
-```bash
-# Check current interfaces
-ip a
-
-# Update local.conf with correct interface
-# Edit PUBLIC_INTERFACE in local.conf
-PUBLIC_INTERFACE=ens33  # or your actual interface
-
-# Restart DevStack
-./unstack.sh
-./stack.sh
-```
-
-### 5. Firewall Blocking Connections
-
-**Problem**: Services cannot communicate between nodes.
-
-**Solution**:
-```bash
-# Disable UFW temporarily for testing
-sudo ufw disable
-
-# Or configure specific ports
-sudo ufw allow from 192.168.0.0/24
-sudo ufw allow 5672  # RabbitMQ
-sudo ufw allow 3306  # MySQL
-sudo ufw allow 9292  # Glance
-```
-
-### 6. Database Connection Issues
-
-**Problem**: Compute node cannot connect to controller database.
-
-**Solution**:
-```bash
-# On controller, check MySQL binding
-sudo netstat -tlnp | grep 3306
-
-# Edit MySQL configuration if needed
-sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf
-# Change bind-address = 0.0.0.0
-
-# Restart MySQL
-sudo systemctl restart mysql
-```
-
-## 🌐 Network Issues
-
-### 7. VM Instances Cannot Get IP Addresses
-
-**Problem**: Launched VMs don't receive IP addresses via DHCP.
-
-**Solution**:
-```bash
-# Check DHCP agent
-openstack network agent list | grep dhcp
-
-# Restart DHCP agent
-sudo systemctl restart devstack@q-dhcp
-
-# Check network configuration
-openstack network list
-openstack subnet list
-```
-
-### 8. Floating IP Issues
-
-**Problem**: Cannot assign or access floating IPs.
-
-**Solution**:
-```bash
-# Check external network configuration
-openstack network show external
-
-# Verify router setup
-openstack router list
-openstack router show router1
-
-# Check iptables rules
-sudo iptables -t nat -L
-```
-
-## 💻 Performance Issues
-
-### 9. Slow VM Performance
-
-**Problem**: Virtual machines run slowly.
-
-**Solution**:
-```bash
-# Check hypervisor resources
-openstack hypervisor show compute1
-
-# Verify CPU features
-grep -E "(vmx|svm)" /proc/cpuinfo
-
-# Check VM flavors
-openstack flavor list
-```
-
-### 10. High CPU Usage
-
-**Problem**: DevStack services consuming too much CPU.
-
-**Solution**:
-```bash
-# Check running processes
-top -p $(pgrep -d',' python)
-
-# Consider disabling unnecessary services in local.conf
-disable_service tempest
-disable_service heat
-```
-
-## 🔄 Recovery Procedures
-
-### 11. Complete Reset
-
-**Problem**: Need to completely reset DevStack installation.
-
-**Solution**:
-```bash
-# Run cleanup script
-cd ~/devstack
-./unstack.sh
-./clean.sh
-
-# Optional: Remove all data
-sudo rm -rf /opt/stack/data/*
-sudo rm -rf /opt/stack/logs/*
-
-# Reinstall
-./stack.sh
-```
-
-### 12. Partial Service Reset
-
-**Problem**: Only specific services need restart.
-
-**Solution**:
-```bash
-# Restart specific service
-sudo systemctl restart devstack@n-cpu
-sudo systemctl restart devstack@q-agt
-
-# Check service status
-sudo systemctl status devstack@n-cpu
-```
-
-## 🐛 Debugging Tips
-
-### General Debugging Process
-
-1. **Check logs first**:
-   ```bash
-   tail -f /opt/stack/logs/stack.sh.log
-   ```
-
-2. **Verify connectivity**:
-   ```bash
-   ping controller
-   telnet controller 5672
-   ```
-
-3. **Check service status**:
-   ```bash
-   sudo systemctl status devstack@*
-   ```
-
-4. **Verify configuration**:
-   ```bash
-   grep -E "(HOST_IP|SERVICE_HOST)" ~/devstack/local.conf
-   ```
-
-### Log File Locations
-- Main installation log: `/opt/stack/logs/stack.sh.log`
-- Nova compute: `/opt/stack/logs/n-cpu.log`
-- Neutron agent: `/opt/stack/logs/q-agt.log`
-- System logs: `/var/log/syslog`
-
-### Useful Commands for Troubleshooting
-```bash
-# Check all DevStack services
-sudo systemctl list-units devstack@*
-
-# Monitor logs in real-time
-sudo journalctl -f -u devstack@n-cpu
-
-# Network debugging
-sudo ovs-vsctl show
-sudo ip netns list
-
-# Process monitoring
-ps aux | grep nova
-ps aux | grep neutron
+tail -f /opt/stack/logs/stack.sh.log
+tail -f /opt/stack/logs/*
 ```
 
 ---
 
-For additional help, refer to:
-- [DevStack Troubleshooting Guide](https://docs.openstack.org/devstack/latest/troubleshooting.html)
-- [OpenStack Documentation](https://docs.openstack.org/)
-- [OpenStack Community](https://www.openstack.org/community/)
+## 2. Restart DevStack Services
+
+```bash
+cd /opt/stack/devstack
+./unstack.sh
+./clean.sh
+./stack.sh
+```
+---
+## 3. Check the MApping of the instacnce 
+```bash
+  sudo -u stack bash
+cd /opt/stack/devstack
+
+# (If not using the stack user, adjust accordingly)
+nova-manage cell_v2 discover_hosts --verbose
+#After running the above, check for unmapped hosts:
+nova-manage cell_v2 list_unmapped_instances
+#If it returns nothing, all hosts are now mapped.
+```
+if any unmapped computes in cell found then on both controller and compute node run the following command 
+```bash
+sudo systemctl restart devstack@n-cond.service
+sudo systemctl restart devstack@n-sch.service
+sudo systemctl restart devstack@n-api.service
+sudo systemctl restart devstack@n-cpu.service
+```
+
+---
+
+## 4. Remove Old Nova State (if compute node issues)
+
+```bash
+sudo systemctl stop devstack@n-cpu.service || true
+sudo pkill -f nova
+sudo rm -rf /etc/nova /var/lib/nova /var/log/nova
+sudo rm -rf /opt/stack/logs/*
+```
+
+---
+
+## 5. Database Cleanup for Nova (if node registration fails)
+
+```bash
+mysql -u root -p
+USE nova;
+DELETE FROM compute_nodes WHERE hypervisor_hostname = 'OLD_HOSTNAME';
+DELETE FROM services WHERE host = 'OLD_HOSTNAME';
+exit
+```
+
+---
+
+## 6. General Cleanup and Restart
+
+```bash
+cd /opt/stack/devstack
+./unstack.sh
+./clean.sh
+sudo rm -rf /etc/nova /var/lib/nova /var/log/nova /opt/stack/logs/*
+./stack.sh
+```
+
+---
+
+## 7. Reboot the Host (if needed)
+
+```bash
+sudo reboot
+```
+
+---
+
+## 8. Security Groups & Network Rules
+
+If instances are not accessible:
+
+```bash
+# Default security group rules
+openstack security group rule create --proto icmp default
+openstack security group rule create --proto tcp --dst-port 22 default
+openstack security group rule create --proto tcp --dst-port 80 default
+openstack security group rule create --proto tcp --dst-port 443 default
+openstack security group rule create --egress --proto any default
+
+# Custom group for Cirros
+openstack security group create my-secgroup --description "For Cirros"
+openstack security group rule create --proto icmp my-secgroup
+openstack security group rule create --proto tcp --dst-port 22 my-secgroup
+openstack security group rule create --proto tcp --dst-port 80 my-secgroup
+openstack security group rule create --egress --proto any my-secgroup
+openstack server add security group <instance-id> my-secgroup
+```
+
+---
+
+## 9. Check OpenStack Services
+
+```bash
+
+source /opt/stack/devstack/openrc admin admin
+openstack compute service list
+openstack network agent list
+openstack volume service list
+openstack service list
+openstack hypervisor list
+```
+
+---
+
+## 10. Check Hypervisors
+
+```bash
+sudo virsh list --all
+```
+
+---
+
+## 11. Network Debugging
+
+```bash
+# On DevStack host
+ip addr
+ip route
+brctl show
+sudo iptables -t nat -L -n -v | grep MASQUERADE
+
+# From inside instance (console)
+ip a
+ip route
+ping <gateway-ip>
+ping 8.8.8.8
+```
+
+---
+
+## 12. Restarting Individual DevStack Services
+
+```bash
+sudo systemctl restart devstack@q-l3.service
+sudo systemctl restart devstack@q-dhcp.service
+sudo systemctl restart devstack@n-cpu.service
+```
+
+---
+
+## 13. Useful References
+
+- [DevStack Troubleshooting](https://docs.openstack.org/devstack/latest/troubleshooting.html)
+- [OpenStack Networking Guide](https://docs.openstack.org/neutron/latest/admin/)

@@ -32,13 +32,20 @@ sudo apt install -y git python3-pip python3-dev build-essential net-tools curl w
 
 ```bash
 sudo useradd -s /bin/bash -d /opt/stack -m stack
+sudo chmod +x /opt/stack
 echo "stack ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/stack
 sudo su - stack
 ```
 
 ---
 
-## 4. Clone DevStack
+## 4 . Add SSH Key
+```bash
+mkdir ~/.ssh; chmod 700 ~/.ssh
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCyYjfgyPazTvGpd8OaAvtU2utL8W6gWC4JdRS1J95GhNNfQd657yO6s1AH5KYQWktcE6FO/xNUC2reEXSGC7ezy+sGO1kj9Limv5vrvNHvF1+wts0Cmyx61D2nQw35/Qz8BvpdJANL7VwP/cFI/p3yhvx2lsnjFE3hN8xRB2LtLUopUSVdBwACOVUmH2G+2BWMJDjVINd2DPqRIA4Zhy09KJ3O1Joabr0XpQL0yt/I9x8BVHdAx6l9U0tMg9dj5+tAjZvMAFfye3PJcYwwsfJoFxC8w/SLtqlFX7Ehw++8RtvomvuipLdmWCy+T9hIkl+gHYE4cS3OIqXH7f49jdJf jesse@spacey.local" > ~/.ssh/authorized_keys
+```
+---
+## 5. Clone DevStack
 
 ```bash
 git clone https://opendev.org/openstack/devstack
@@ -47,151 +54,136 @@ cd devstack
 
 ---
 
-## 5. Create Controller `local.conf`
+## 6. Create Controller `local.conf`
 
-```ini name=local.conf
+```ini
 [[local|localrc]]
-HOST_IP=192.168.0.5
-MULTI_HOST=1
+HOST_IP=192.168.60.11
+FIXED_RANGE=10.4.128.0/20
+FLOATING_RANGE=192.168.60.128/25
+LOGFILE=/opt/stack/logs/stack.sh.log
 ADMIN_PASSWORD=labstack
-DATABASE_PASSWORD=labstack
-RABBIT_PASSWORD=labstack
-SERVICE_PASSWORD=labstack
-
-# Networking
-FLOATING_RANGE=192.168.0.0/24
-PUBLIC_INTERFACE=eth0
-
-# Enable Neutron services
-disable_service n-net
-enable_service q-svc
-enable_service q-agt
-enable_service q-dhcp
-enable_service q-l3
-enable_service q-meta
-enable_service neutron
-
-# Enable Compute service on controller (optional for testing)
-enable_service n-cpu
-
-# Add Compute Node IPs
-COMPUTE_HOSTS=192.168.0.6
-
-# Enable Horizon (dashboard)
-enable_service horizon
+DATABASE_PASSWORD=supersecret
+RABBIT_PASSWORD=supersecret
+SERVICE_PASSWORD=supersecret
 
 # Logging
 LOGFILE=/opt/stack/logs/stack.sh.log
 ```
 
-> - Replace `COMPUTE_HOSTS` IP with your compute node(s).
-> - Replace `PUBLIC_INTERFACE` (`eth0`) with your actual interface if different (use `ip a`).
-
 ---
 
-## 6. Set Hostnames
-
-Edit `/etc/hosts` on both controller and compute nodes:
-
-```
-192.168.0.5   controller
-192.168.0.6   compute1
-sudo systemctl stop devstack@n-cpu.service || true
-sudo pkill -f nova
-sudo rm -rf /etc/nova /var/lib/nova /var/log/nova
-
-```
-
+## 7. Create Controller  `local.sh`
+```ini
+for i in `seq 2 10`; 
+     do /opt/stack/nova/bin/nova-manage fixed reserve 10.4.128.$i; 
+  done
 ---
-
-## 7. Run DevStack
+```
+## 8. Run DevStack
 
 ```bash
 cd ~/devstack
 ./stack.sh
-
-sudo reboot
-sudo pkill -f nova
-sudo rm -rf /etc/nova /var/lib/nova /var/log/nova /opt/stack/logs/*
-mysql -u root -p
-USE nova;
-DELETE FROM compute_nodes WHERE hypervisor_hostname = 'OLD_HOSTNAME';
-DELETE FROM services WHERE host = 'OLD_HOSTNAME';
-cd /opt/stack/devstack
-./stack.sh
-
-openstack security group rule create --proto icmp default
-openstack security group rule create --proto tcp --dst-port 22 default
-openstack security group rule create --proto tcp --dst-port 80 default
-openstack security group rule create --proto tcp --dst-port 443 default
-openstack security group rule create --egress --proto any default
-
-openstack security group create my-secgroup --description "For Cirros"
-openstack security group rule create --proto icmp my-secgroup
-openstack security group rule create --proto tcp --dst-port 22 my-secgroup
-openstack security group rule create --proto tcp --dst-port 80 my-secgroup
-openstack security group rule create --egress --proto any my-secgroup
-openstack server add security group <instance-id> my-secgroup
-
 ```
 
 ---
 
-## 8. Access the Dashboard
+## 9. Set Hostnames (optional if any host error)
 
-- Open: [http://192.168.0.5/dashboard](http://192.168.0.5/dashboard)
+Edit `/etc/hosts` on both controller and compute nodes:
+
+```
+192.168.60.11   controller
+192.168.60.12   compute1
+```
+
+
+---
+## create router (optional or create it in horizontal directly)
+
+```bash
+# create a router
+openstack router create myrouter
+# Set the external gateway
+openstack router set myrouter --external-gateway public
+#Add your internal subnet to the router
+openstack router add subnet myrouter <your-subnet-name-or-id>
+```
+## After successful setup, verify all OpenStack services:
+
+```bash
+source /opt/stack/devstack/openrc admin admin
+```
+```bash
+# List all OpenStack services
+openstack compute service list
+openstack network agent list
+openstack volume service list
+openstack service list
+openstack hypervisor list
+```
+
+---
+
+## 11. Mapping and Accessing Instances
+
+### 11.1. Mapping Instances to Networks and Security Groups
+
+- **List Instances with Network Info:**
+  ```bash
+  openstack server list --long
+  ```
+  This command displays all instances along with their fixed and floating IP addresses, status, and attached networks.
+
+- **View Detailed Instance Information:**
+  ```bash
+  openstack server show <instance-name-or-id>
+  ```
+  Look for the fields `addresses` (for network mapping), `security_groups`, and `OS-EXT-SRV-ATTR:host` (for compute node location).
+
+- **List Security Groups and Rules:**
+  ```bash
+  openstack security group list           # List all security groups
+  openstack security group show <name>    # Show rules for a group
+  ```
+
+### 11.2. Example Mapping Table
+
+| Instance Name | Instance ID | Fixed IP      | Floating IP    | Network           | Host Node   | Security Groups    |
+|---------------|-------------|---------------|----------------|-------------------|-------------|-------------------|
+| cirros-1      | abcd-1234   | 10.4.128.10   | 192.168.60.130 | private-net       | compute1    | default, my-secgroup |
+
+*Use the above commands to fill out this table for your deployment.*
+
+---
+
+### 11.3. Accessing an Instance
+
+- **Assign a Floating IP (if not already assigned):**
+  ```bash
+  openstack floating ip create <external-network>
+  openstack server add floating ip <instance-id> <floating-ip>
+  ```
+- **SSH to the Instance (if using Cirros or Ubuntu cloud image):**
+  ```bash
+  ssh cirros@<floating-ip>
+  # or for Ubuntu images:
+  ssh ubuntu@<floating-ip>
+  ```
+  *(Use the private key associated with the key pair you specified when launching the instance.)*
+
+---
+
+## 12. Access the Dashboard
+
+- Open: [http://192.168.60.11/dashboard](http://192.168.60.11/dashboard)
 - Username: `admin`
 - Password: `labstack`
 
 ---
 
-## 9. Troubleshooting
-
-- Check logs: `/opt/stack/logs/`
-- Restart services:
-    ```bash
-    ./unstack.sh
-    ./clean.sh
-    ./stack.sh
-    ```
-- Check Hypervisor:  
-    ```bash
-    sudo virsh list --all
-    ```
-
----
-
-## 10. Useful Commands
-
-- View Nova services:
-    ```bash
-    openstack compute service list
-    # 1. Stop DevStack services if running
-cd /opt/stack/devstack
-./unstack.sh
-
-# 2. Clean DevStack state
-./clean.sh
-
-# 3. Remove old nova state (do this carefully!)
-sudo rm -rf /etc/nova /var/lib/nova /var/log/nova
-
-# 4. (Optional, but recommended) Remove DevStack logs as well
-sudo rm -rf /opt/stack/logs/*
-
-# 5. Start the stack process again
-./stack.sh
-    ```
-- View logs:
-    ```bash
-    tail -f /opt/stack/logs/stack.sh.log
-    ```
-
----
-
-## 11. References
+## 13. References
 
 - [DevStack Multinode Guide](https://docs.openstack.org/devstack/latest/guides/multinode-lab.html)
 - [DevStack Troubleshooting](https://docs.openstack.org/devstack/latest/troubleshooting.html)
-
----
