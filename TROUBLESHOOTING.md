@@ -158,8 +158,25 @@ sudo systemctl restart devstack@n-cpu.service
 ```
 
 ---
+## 13. Floating IP associating error
 
-## 13. Useful References
+```bach
+openstack router list
+openstack network list
+openstack router show router1 # incase u have this router name 
+openstack router show r1
+openstack router show r2
+
+# after the checking details of router get the subnet ID and add it
+
+openstack router add subnet router1 <subnet ID>
+
+# in case if u want to assign floating ip manually go to the openstack service webpage and associate manually
+
+#else
+openstack floating ip set --port <your-port-ip> <your-floating-ip-id>
+```
+## 14. Useful References
 
 - [DevStack Troubleshooting](https://docs.openstack.org/devstack/latest/troubleshooting.html)
 - [OpenStack Networking Guide](https://docs.openstack.org/neutron/latest/admin/)
