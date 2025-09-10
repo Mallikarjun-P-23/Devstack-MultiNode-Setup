@@ -51,42 +51,24 @@ cd devstack
 
 ```ini name=local.conf
 [[local|localrc]]
-HOST_IP=192.168.0.6
-MULTI_HOST=1
-ADMIN_PASSWORD=labstack
-DATABASE_PASSWORD=labstack
-RABBIT_PASSWORD=labstack
-SERVICE_PASSWORD=labstack
-
-# Point to controller
-SERVICE_HOST=192.168.0.5
-MYSQL_HOST=192.168.0.5
-RABBIT_HOST=192.168.0.5
-GLANCE_HOSTPORT=192.168.0.5:9292
-
-# Disable services not needed on compute
-disable_service n-net
-disable_service q-svc
-disable_service q-dhcp
-disable_service q-l3
-disable_service q-meta
-disable_service neutron
-disable_service heat
-disable_service horizon
-disable_service nova-api
-disable_service nova-cert
-disable_service nova-consoleauth
-disable_service nova-scheduler
-
-# Enable compute services
-enable_service n-cpu
-enable_service q-agt
-
-# Networking
-PUBLIC_INTERFACE=eth0
-
-# Logging
+HOST_IP=192.168.0.6 # change this per compute node
+FIXED_RANGE=10.4.128.0/20
+FLOATING_RANGE=192.168.42.128/25
 LOGFILE=/opt/stack/logs/stack.sh.log
+ADMIN_PASSWORD=labstack
+DATABASE_PASSWORD=supersecret
+RABBIT_PASSWORD=supersecret
+SERVICE_PASSWORD=supersecret
+DATABASE_TYPE=mysql
+SERVICE_HOST=192.168.0.5
+MYSQL_HOST=$SERVICE_HOST
+RABBIT_HOST=$SERVICE_HOST
+GLANCE_HOSTPORT=$SERVICE_HOST:9292
+ENABLED_SERVICES=n-cpu,c-vol,placement-client,ovn-controller,ovs-vswitchd,ovsdb-server,q-ovn-metadata-agent
+NOVA_VNC_ENABLED=True
+NOVNCPROXY_URL="http://$SERVICE_HOST:6080/vnc_lite.html"
+VNCSERVER_LISTEN=$HOST_IP
+VNCSERVER_PROXYCLIENT_ADDRESS=$VNCSERVER_LISTEN
 ```
 
 > - Replace `PUBLIC_INTERFACE` (`eth0`) with your actual interface if different (use `ip a`).
