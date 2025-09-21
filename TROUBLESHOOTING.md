@@ -177,7 +177,7 @@ openstack router add subnet router1 <subnet ID>
 openstack floating ip set --port <your-port-ip> <your-floating-ip-id>
 ```
 
-##14 .For cinder-volume is down in compute 
+## 14 .For cinder-volume is down in compute 
 
 ```bach
 sudo nano /etc/cinder/cinder.conf
@@ -186,7 +186,7 @@ sudo systemctl restart devstack@c-vol
 sudo journalctl -fu devstack@c-vol
 #check the volume services
 ```
-## 14. Useful References
+## 15. Useful References
 
 - [DevStack Troubleshooting](https://docs.openstack.org/devstack/latest/troubleshooting.html)
 - [OpenStack Networking Guide](https://docs.openstack.org/neutron/latest/admin/)
